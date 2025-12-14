@@ -1,0 +1,151 @@
+# MCP Toolbox Configuration for AI Front Desk Agent
+# Run with: npx @toolbox-sdk/server --tools-file tools.yaml
+
+sources:
+  frontdesk-db:
+    kind: postgres
+    host: ${DB_HOST:127.0.0.1}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:frontdesk}
+    user: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+tools:
+  # ============================================
+  # CREATE QUEUE TICKET
+  # ============================================
+  create_queue_ticket:
+    kind: postgres-sql
+    source: frontdesk-db
+    description: |
+      Create a new queue ticket for a customer. 
+      Use this when the customer needs to wait for staff assistance.
+      Returns the queue number (e.g., 'A-014') and estimated wait time.
+    parameters:
+      - name: category_code
+        type: string
+        description: Category code (A=General, B=Account, C=Technical, D=Complaints)
+      - name: priority
+        type: integer
+        description: Priority level (0=urgent/VIP, 1=normal, 2=scheduled). Default is 1.
+      - name: customer_name
+        type: string
+        description: Customer name (optional)
+      - name: phone
+        type: string
+        description: Customer phone number (optional)
+    statement: |
+      WITH next_seq AS (
+        INSERT INTO daily_sequences (category_code, sequence_date, next_number)
+        VALUES ($1, CURRENT_DATE, 1)
+        ON CONFLICT (category_code, sequence_date)
+        DO UPDATE SET next_number = daily_sequences.next_number + 1
+        RETURNING next_number
+      ),
+      new_ticket AS (
+        INSERT INTO queue_tickets (queue_no, category_id, priority, customer_name, phone, eta_minutes)
+        SELECT 
+          $1 || '-' || LPAD((SELECT next_number FROM next_seq)::text, 3, '0'),
+          c.id,
+          COALESCE($2, 1),
+          $3,
+          $4,
+          (SELECT COUNT(*) FROM queue_tickets WHERE status = 'waiting' AND category_id = c.id) * c.avg_handling_time_min
+        FROM categories c WHERE c.code = $1
+        RETURNING id, queue_no, eta_minutes
+      )
+      SELECT queue_no, eta_minutes, id as ticket_id FROM new_ticket;
+
+  # ============================================
+  # GET QUEUE STATUS
+  # ============================================
+  get_queue_status:
+    kind: postgres-sql
+    source: frontdesk-db
+    description: |
+      Check the status and position of a queue ticket by its queue number.
+      Returns current position in line, status, and estimated wait time.
+    parameters:
+      - name: queue_no
+        type: string
+        description: The queue number to check (e.g., 'A-014')
+    statement: |
+      SELECT 
+        qt.queue_no,
+        qt.status,
+        qt.eta_minutes,
+        (
+          SELECT COUNT(*) + 1 
+          FROM queue_tickets qt2 
+          WHERE qt2.category_id = qt.category_id 
+            AND qt2.status = 'waiting' 
+            AND qt2.created_at < qt.created_at
+        ) as position,
+        c.name as category_name
+      FROM queue_tickets qt
+      JOIN categories c ON c.id = qt.category_id
+      WHERE qt.queue_no = $1;
+
+  # ============================================
+  # CALL NEXT TICKET (Staff use)
+  # ============================================
+  call_next_ticket:
+    kind: postgres-sql
+    source: frontdesk-db
+    description: |
+      Call the next waiting customer in queue. Used by staff at service counters.
+      Updates the ticket status to 'called' and assigns the counter.
+    parameters:
+      - name: counter_id
+        type: string
+        description: The counter/desk ID calling the next customer
+      - name: category_code
+        type: string
+        description: Category code to call from (optional, calls any if not specified)
+    statement: |
+      UPDATE queue_tickets 
+      SET status = 'called', 
+          called_at = CURRENT_TIMESTAMP, 
+          counter_id = $1
+      WHERE id = (
+        SELECT qt.id 
+        FROM queue_tickets qt
+        JOIN categories c ON c.id = qt.category_id
+        WHERE qt.status = 'waiting'
+          AND ($2 IS NULL OR c.code = $2)
+        ORDER BY qt.priority ASC, qt.created_at ASC
+        LIMIT 1
+      )
+      RETURNING queue_no, id as ticket_id, counter_id;
+
+  # ============================================
+  # GET WAITING COUNT
+  # ============================================
+  get_waiting_count:
+    kind: postgres-sql
+    source: frontdesk-db
+    description: |
+      Get the current number of customers waiting in each category.
+      Useful for informing customers about queue length.
+    parameters: []
+    statement: |
+      SELECT 
+        c.code as category_code,
+        c.name as category_name,
+        COUNT(qt.id) as waiting_count,
+        COALESCE(SUM(c.avg_handling_time_min), 0) as total_eta_minutes
+      FROM categories c
+      LEFT JOIN queue_tickets qt ON qt.category_id = c.id AND qt.status = 'waiting'
+      GROUP BY c.id, c.code, c.name
+      ORDER BY c.code;
+
+toolsets:
+  frontdesk:
+    - create_queue_ticket
+    - get_queue_status
+    - get_waiting_count
+  
+  staff:
+    - call_next_ticket
+    - get_queue_status
+    - get_waiting_count
