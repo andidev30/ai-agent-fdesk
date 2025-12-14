@@ -1,13 +1,14 @@
 .queue-card {
     background: linear-gradient(135deg, #1e4d3d 0%, #0d2a1b 100%);
     border-radius: 20px;
-    padding: 24px;
+    padding: 32px;
     text-align: center;
     border: 2px solid rgba(129, 199, 132, 0.3);
     box-shadow:
         0 8px 32px rgba(129, 199, 132, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     animation: slideIn 0.5s ease;
+    width: 100%;
 }
 
 @keyframes slideIn {
@@ -26,50 +27,134 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.queue-card-header h3 {
+    font-size: 18px;
+    font-weight: 600;
     color: rgba(129, 199, 132, 0.9);
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 16px;
+    margin: 0;
 }
 
 .queue-icon {
-    font-size: 20px;
+    font-size: 40px;
+}
+
+.queue-photo-hint {
+    font-size: 14px;
+    color: #ffc107;
+    margin: 4px 0 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.queue-customer-info {
+    margin-bottom: 16px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.info-row+.info-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.info-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.queue-number-display {
+    margin-bottom: 24px;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
 }
 
 .queue-number {
-    font-size: 64px;
+    font-size: 96px;
     font-weight: 700;
     color: #81c784;
     line-height: 1;
-    margin-bottom: 16px;
-    text-shadow: 0 2px 10px rgba(129, 199, 132, 0.3);
-    letter-spacing: 2px;
+    text-shadow: 0 4px 20px rgba(129, 199, 132, 0.4);
+    letter-spacing: 8px;
 }
 
 .queue-eta {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
 
 .eta-label {
-    font-size: 12px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.5);
 }
 
 .eta-value {
-    font-size: 16px;
+    font-size: 24px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
 }
 
-.queue-hint {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    font-style: italic;
+.queue-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.queue-footer p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 20px;
+}
+
+.queue-close-btn {
+    background: linear-gradient(135deg, #81c784, #66bb6a);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 48px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0d2a1b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.queue-close-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(129, 199, 132, 0.4);
 }

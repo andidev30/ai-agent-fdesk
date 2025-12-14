@@ -106,6 +106,7 @@ async def websocket_endpoint(
     # ========================================
     
     # Configure for audio input/output with transcription
+    # Native audio models require AUDIO response modality
     run_config = RunConfig(
         streaming_mode=StreamingMode.BIDI,
         response_modalities=["AUDIO"],
@@ -145,23 +146,24 @@ async def websocket_endpoint(
                 if msg_type == "audio.chunk":
                     # Audio data (base64 encoded PCM16)
                     audio_data = base64.b64decode(message.get("dataB64", ""))
-                    content = types.Content(
-                        parts=[types.Part(inline_data=types.Blob(
-                            mime_type="audio/pcm;rate=16000",
-                            data=audio_data
-                        ))]
+                    print(f"🎤 Audio chunk received: {len(audio_data)} bytes")
+                    audio_blob = types.Blob(
+                        mime_type="audio/pcm;rate=16000",
+                        data=audio_data
                     )
-                    live_request_queue.send_content(content)
+                    live_request_queue.send_realtime(audio_blob)
                 
                 elif msg_type == "text":
                     # Text message
                     text = message.get("text", "")
+                    print(f"💬 Text received: {text}")
                     if text:
                         content = types.Content(parts=[types.Part(text=text)])
                         live_request_queue.send_content(content)
                 
                 elif msg_type == "session.stop":
                     # Client requested session end
+                    print("🛑 Session stop requested")
                     break
 
         except WebSocketDisconnect:
@@ -178,59 +180,10 @@ async def websocket_endpoint(
                 live_request_queue=live_request_queue,
                 run_config=run_config,
             ):
-                # Process different event types
-                response_message = None
-                
-                # Check for audio content
-                if hasattr(event, 'content') and event.content:
-                    for part in event.content.parts or []:
-                        if hasattr(part, 'inline_data') and part.inline_data:
-                            # Audio response
-                            response_message = {
-                                "type": "agent.audio",
-                                "format": "pcm16",
-                                "sampleRate": 24000,
-                                "dataB64": base64.b64encode(part.inline_data.data).decode()
-                            }
-                        elif hasattr(part, 'text') and part.text:
-                            # Text response
-                            response_message = {
-                                "type": "agent.text",
-                                "text": part.text
-                            }
-
-                # Check for transcription events
-                if hasattr(event, 'server_content'):
-                    sc = event.server_content
-                    if hasattr(sc, 'input_transcription') and sc.input_transcription:
-                        response_message = {
-                            "type": "asr.partial" if not sc.input_transcription.is_final else "asr.final",
-                            "text": sc.input_transcription.text
-                        }
-                    if hasattr(sc, 'output_transcription') and sc.output_transcription:
-                        response_message = {
-                            "type": "agent.transcript",
-                            "text": sc.output_transcription.text
-                        }
-
-                # Check for tool results (queue events)
-                if hasattr(event, 'actions') and event.actions:
-                    for action in event.actions.actions or []:
-                        if hasattr(action, 'tool_response'):
-                            # Parse tool response for queue info
-                            try:
-                                result = json.loads(str(action.tool_response))
-                                if 'queue_no' in result:
-                                    response_message = {
-                                        "type": "queue.issued",
-                                        "queueNo": result.get('queue_no'),
-                                        "etaMinutes": result.get('eta_minutes', 0)
-                                    }
-                            except:
-                                pass
-
-                if response_message:
-                    await websocket.send_text(json.dumps(response_message))
+                # Debug: print event summary
+                event_json = event.model_dump_json(exclude_none=True, by_alias=True)
+                print(f"📤 Event to client: {event_json[:200]}...")
+                await websocket.send_text(event_json)
 
         except Exception as e:
             print(f"❌ Downstream error: {e}")

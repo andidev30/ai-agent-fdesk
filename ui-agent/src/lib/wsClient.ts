@@ -1,32 +1,36 @@
 /**
  * WebSocket Client for AI Front Desk Agent
  * Handles bidirectional audio/text streaming with the backend.
+ * Adapted for ADK event format.
  */
 
-export type MessageType = 
-  | 'session.start'
-  | 'session.stop'
-  | 'audio.chunk'
-  | 'text'
-  | 'asr.partial'
-  | 'asr.final'
-  | 'agent.text'
-  | 'agent.audio'
-  | 'agent.transcript'
-  | 'queue.issued';
-
-export interface WSMessage {
-  type: MessageType;
-  text?: string;
-  dataB64?: string;
-  format?: string;
-  sampleRate?: number;
-  queueNo?: string;
-  etaMinutes?: number;
+// ADK Event types from run_live()
+export interface ADKEvent {
+  partial?: boolean;
+  inputTranscription?: {
+    text: string;
+    finished?: boolean;
+  };
+  outputTranscription?: {
+    text: string;
+    finished?: boolean;
+  };
+  content?: {
+    parts?: Array<{
+      text?: string;
+      inlineData?: {
+        data: string;
+        mimeType?: string;
+      };
+    }>;
+  };
+  author?: string;
+  invocationId?: string;
+  actions?: unknown;
 }
 
 export interface WSClientOptions {
-  onMessage?: (message: WSMessage) => void;
+  onMessage?: (event: ADKEvent) => void;
   onOpen?: () => void;
   onClose?: () => void;
   onError?: (error: Event) => void;
@@ -36,7 +40,6 @@ export function createWsClient(
   wsUrl: string,
   options: WSClientOptions = {}
 ): {
-  send: (message: WSMessage) => void;
   sendAudio: (audioData: ArrayBuffer) => void;
   sendText: (text: string) => void;
   close: () => void;
@@ -61,20 +64,14 @@ export function createWsClient(
 
   ws.onmessage = (event) => {
     try {
-      const message: WSMessage = JSON.parse(event.data);
-      options.onMessage?.(message);
+      const adkEvent: ADKEvent = JSON.parse(event.data);
+      options.onMessage?.(adkEvent);
     } catch (e) {
       console.error('Failed to parse WebSocket message:', e);
     }
   };
 
   return {
-    send: (message: WSMessage) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(message));
-      }
-    },
-
     sendAudio: (audioData: ArrayBuffer) => {
       if (ws.readyState === WebSocket.OPEN) {
         const dataB64 = btoa(

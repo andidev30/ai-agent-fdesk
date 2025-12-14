@@ -30,18 +30,30 @@ function App() {
       </header>
 
       <main className="app-main">
-        <div className="app-content">
-          {/* Queue Card - Shows when issued */}
-          <QueueCard queueInfo={queueInfo} />
+        <div className={`app-layout ${queueInfo ? 'has-queue' : ''}`}>
+          {/* Main Content */}
+          <div className="app-content">
+            {/* Transcript Panel */}
+            <TranscriptPanel transcripts={transcripts} />
 
-          {/* Transcript Panel */}
-          <TranscriptPanel transcripts={transcripts} />
+            {/* Error Display */}
+            {error && (
+              <div className="error-banner">
+                <span>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
 
-          {/* Error Display */}
-          {error && (
-            <div className="error-banner">
-              <span>⚠️</span>
-              <span>{error}</span>
+          {/* Queue Card - Shows on right when issued */}
+          {queueInfo && (
+            <div className="queue-sidebar">
+              <QueueCard
+                queueNo={queueInfo.queueNo}
+                etaMinutes={queueInfo.etaMinutes}
+                customerName={queueInfo.customerName}
+                phoneNumber={queueInfo.phoneNumber}
+              />
             </div>
           )}
         </div>

@@ -10,6 +10,7 @@ export interface PCMPlayerOptions {
 export interface PCMPlayer {
     play: (pcmData: ArrayBuffer) => void;
     stop: () => void;
+    resume: () => Promise<void>;
 }
 
 export function createPCMPlayer(options: PCMPlayerOptions = {}): PCMPlayer {
@@ -20,6 +21,7 @@ export function createPCMPlayer(options: PCMPlayerOptions = {}): PCMPlayer {
     const getAudioContext = (): AudioContext => {
         if (!audioContext) {
             audioContext = new AudioContext({ sampleRate });
+            console.log('🔊 AudioContext created, state:', audioContext.state);
         }
         return audioContext;
     };
@@ -33,8 +35,25 @@ export function createPCMPlayer(options: PCMPlayerOptions = {}): PCMPlayer {
         return float32Array;
     };
 
+    const resume = async (): Promise<void> => {
+        const ctx = getAudioContext();
+        if (ctx.state === 'suspended') {
+            console.log('🔊 Resuming AudioContext...');
+            await ctx.resume();
+            console.log('🔊 AudioContext resumed, state:', ctx.state);
+        }
+    };
+
     const play = (pcmData: ArrayBuffer) => {
         const ctx = getAudioContext();
+
+        // Resume if suspended (autoplay policy)
+        if (ctx.state === 'suspended') {
+            ctx.resume().then(() => {
+                console.log('🔊 AudioContext resumed');
+            });
+        }
+
         const float32Data = pcm16ToFloat32(pcmData);
 
         const audioBuffer = ctx.createBuffer(1, float32Data.length, sampleRate);
@@ -59,5 +78,5 @@ export function createPCMPlayer(options: PCMPlayerOptions = {}): PCMPlayer {
         }
     };
 
-    return { play, stop };
+    return { play, stop, resume };
 }

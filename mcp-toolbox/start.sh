@@ -6,4 +6,4 @@ source .env
 set +a
 
 # Start toolbox with UI
-toolbox --tools-file tools.yaml --ui
+toolbox --tools-file tools.yaml --ui -a 0.0.0.0 -p 5001

@@ -15,7 +15,7 @@ SYSTEM_INSTRUCTION = PROMPT_PATH.read_text() if PROMPT_PATH.exists() else ""
 
 # MCP Toolbox server URL (set via environment variable or default)
 import os
-TOOLBOX_URL = os.getenv("TOOLBOX_URL", "http://localhost:5000")
+TOOLBOX_URL = os.getenv("TOOLBOX_URL", "http://localhost:5001")
 
 def load_tools():
     """Load tools from MCP Toolbox server."""
@@ -30,9 +30,8 @@ def load_tools():
 # Create the front desk agent
 root_agent = Agent(
     name="frontdesk_agent",
-    # Gemini model with Live API support for native audio
-    # Check https://ai.google.dev/gemini-api/docs/models#live-api for latest model ID
-    model="gemini-2.0-flash-live-001",
+    # From ADK sample: gemini-2.5-flash-native-audio-preview-09-2025
+    model="gemini-2.5-flash-native-audio-preview-09-2025",
     description="AI-powered front desk agent that greets customers, performs triage, and issues queue tickets.",
     instruction=SYSTEM_INSTRUCTION,
     tools=load_tools(),

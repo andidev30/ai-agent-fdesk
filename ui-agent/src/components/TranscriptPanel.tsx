@@ -3,6 +3,7 @@
  * Displays the conversation transcript between user and agent.
  */
 
+import { useEffect, useRef } from 'react';
 import type { TranscriptEntry } from '../hooks/useVoiceSession';
 import './TranscriptPanel.css';
 
@@ -11,6 +12,13 @@ interface TranscriptPanelProps {
 }
 
 export function TranscriptPanel({ transcripts }: TranscriptPanelProps) {
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to bottom when new messages arrive
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [transcripts]);
+
     return (
         <div className="transcript-panel">
             <div className="transcript-header">
@@ -39,6 +47,7 @@ export function TranscriptPanel({ transcripts }: TranscriptPanelProps) {
                         </div>
                     ))
                 )}
+                <div ref={messagesEndRef} />
             </div>
         </div>
     );
