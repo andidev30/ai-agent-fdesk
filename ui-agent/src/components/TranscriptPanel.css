@@ -1,0 +1,107 @@
+.transcript-panel {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+}
+
+.transcript-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.transcript-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.transcript-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.transcript-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+.transcript-entry {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.transcript-entry.user {
+    background: rgba(100, 181, 246, 0.1);
+    border: 1px solid rgba(100, 181, 246, 0.2);
+}
+
+.transcript-entry.agent {
+    background: rgba(129, 199, 132, 0.1);
+    border: 1px solid rgba(129, 199, 132, 0.2);
+}
+
+.transcript-entry.partial .transcript-text {
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.transcript-avatar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.transcript-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.transcript-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.transcript-text {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+    word-break: break-word;
+}
