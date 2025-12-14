@@ -15,6 +15,16 @@ The demo implements a **Front Desk Agent** that can:
 - 🎫 Issue queue tickets with customer info
 - 📱 Display visual queue cards
 
+## 📸 Demo
+
+| Voice Conversation | Queue Card Display |
+|---|---|
+| ![Voice Chat](demo/Screenshot%202025-12-15%20at%2000.22.41.png) | ![Queue Card](demo/Screenshot%202025-12-15%20at%2000.24.31.png) |
+
+**Demo recordings available in [`/demo`](./demo/) folder:**
+- Screen recordings of full conversation flow
+- Screenshots of UI states
+
 ## 🏗️ Architecture
 
 ```
