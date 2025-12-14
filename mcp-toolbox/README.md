@@ -44,13 +44,29 @@ DB_PASSWORD=mysecretpass npx @toolbox-sdk/server --tools-file tools.yaml
 ## Docker
 
 ```bash
-cd docker
-docker build -t frontdesk-toolbox ..
-docker run -p 5000:5000 \
-  -e DB_HOST=host.docker.internal \
+# Build image
+docker build -t frontdesk-toolbox . --load
+
+# Run container
+docker run -d -p 5000:5000 \
+  --network your-network \
+  -e DB_HOST=your-db-host \
+  -e DB_USER=youruser \
   -e DB_PASSWORD=yourpassword \
+  -e DB_NAME=yourdb \
   frontdesk-toolbox
+
+# Check logs
+docker logs <container-id>
 ```
+
+### Toolbox CLI Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-a`, `--address` | Interface IP to listen on | `127.0.0.1` |
+| `-p`, `--port` | Port to listen on | `5000` |
+| `--tools-file` | Path to tools.yaml | - |
 
 ## Integration with ADK Agent
 

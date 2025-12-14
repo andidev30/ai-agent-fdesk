@@ -5,4 +5,4 @@ COPY tools.yaml .
 
 EXPOSE 5000
 
-CMD ["--tools-file", "tools.yaml", "--address", "0.0.0.0:5000"]
+CMD ["--tools-file", "tools.yaml", "-a", "0.0.0.0", "-p", "5000"]
