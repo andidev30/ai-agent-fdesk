@@ -28,17 +28,44 @@ The `tools.yaml` file defines:
 | `DB_USER` | `postgres` | Database user |
 | `DB_PASSWORD` | `postgres` | Database password |
 
-## Running Locally
+## Development
+
+### Prerequisites
+
+Install MCP Toolbox: https://googleapis.github.io/genai-toolbox/getting-started/introduction/
 
 ```bash
-# Install toolbox
 brew install mcp-toolbox
+```
 
-# Or use npx
-npx @toolbox-sdk/server --tools-file tools.yaml
+### Setup
 
-# With environment variables
-DB_PASSWORD=mysecretpass npx @toolbox-sdk/server --tools-file tools.yaml
+1. Create `.env` file from example:
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` with your database credentials:
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=fdesk_live
+DB_USER=****
+DB_PASSWORD=****
+```
+
+3. Run the toolbox with UI:
+```bash
+./start.sh
+```
+
+4. Open http://localhost:5000/ui to test tools
+
+### Running without UI
+
+```bash
+set -a && source .env && set +a
+toolbox --tools-file tools.yaml
 ```
 
 ## Docker
@@ -51,8 +78,8 @@ docker build -t frontdesk-toolbox . --load
 docker run -d -p 5000:5000 \
   --network your-network \
   -e DB_HOST=your-db-host \
-  -e DB_USER=youruser \
-  -e DB_PASSWORD=yourpassword \
+  -e DB_USER=**=** \
+  -e DB_PASSWORD=****** \
   -e DB_NAME=yourdb \
   frontdesk-toolbox
 
